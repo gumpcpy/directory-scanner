@@ -16,7 +16,7 @@ CSV 輸出：
 翻譯依據 config.yaml 設定
 
 ## 下載
-[Mac M Chip APP 下載](https://github.com/M-Chip/Directory-Scanner/releases)
+[Mac M Chip APP 下載](./Directory-Scanner-v1.1.1-M-Chip.dmg)
 
 ## 截圖
 ![Screenshot](./screenshots/snap1.png)
