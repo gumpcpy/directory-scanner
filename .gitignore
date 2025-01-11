@@ -1,0 +1,6 @@
+__pycache__/
+build/
+dist/
+*.code-workspace
+*.spec
+!releases/latest
