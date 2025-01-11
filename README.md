@@ -19,6 +19,6 @@ CSV 輸出：
 [Mac M Chip APP 下載](./releases/latest/Directory-Scanner-v1.1.1-M-Chip.dmg)
 
 ## 截圖
-![Screenshot](./snap1.png)
-![Screenshot](./snap2.png)
-![Screenshot](./snap3.png)
+![Screenshot](./screenshots/snap1.png)
+![Screenshot](./screenshots/snap2.png)
+![Screenshot](./screenshots/snap3.png)
