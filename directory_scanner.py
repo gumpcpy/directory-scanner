@@ -13,6 +13,7 @@ from datetime import datetime
 from reportlab.platypus import Image
 from reportlab.lib.utils import ImageReader
 import sys
+import random
 
 def get_size(path):
     """獲取文件或目錄的大小"""
@@ -37,7 +38,7 @@ def scan_directory_to_csv(root_path, max_depth, output_file):
         writer = csv.writer(csvfile)
         
          # 寫入根目錄名稱和總大小
-        writer.writerow([f'Root Directory: {root_name}', f'Total Size: {humanize.naturalsize(total_size)}'])
+        writer.writerow([f'Root Directory: {root_name}', f'Total Size: {humanize.naturalsize(total_size, format="%.2f")}'])
         writer.writerow([])  # 空行
         
         # 寫入表頭
@@ -57,7 +58,7 @@ def scan_directory_to_csv(root_path, max_depth, output_file):
                     row = [''] * max_depth
                     row[current_depth] = entry.name
                     entry_type = "Directory" if entry.is_dir() else "File"
-                    size = humanize.naturalsize(get_size(entry))
+                    size = humanize.naturalsize(get_size(entry), format="%.2f")
                     creation_time = datetime.fromtimestamp(entry.stat().st_ctime).strftime('%Y-%m-%d %H:%M:%S')
                     row.extend([entry_type, size, creation_time])
                     writer.writerow(row)
@@ -163,19 +164,50 @@ def create_pdf_report(root_path, max_depth, pdf_output, project_name, translatio
     
     elements.append(Spacer(1, 30))
     
-    # 添加總大小信息
+    # 添加總大小信息和建立時間
     root_name = os.path.basename(root_path)
     total_size = get_size(root_path)
-    elements.append(Paragraph(f"{root_name} - {translations['total_size'].format(humanize.naturalsize(total_size))}", 
-                            normal_style))
+    print(f"total_size: {total_size}")
+    formatted_size = humanize.naturalsize(total_size, format="%.2f") 
+    print(f"formatted_size: {formatted_size}")
+    creation_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # elements.append(Paragraph(f"{root_name} - {translations['total_size'].format(formatted_size)}", 
+    #                         normal_style))
+    # elements.append(Spacer(1, 10))
+    size_and_time_table = Table(
+        [[f"{root_name} - {translations['total_size'].format(formatted_size)}", 
+          f"{translations['scan_time']} {creation_time}"]],
+        colWidths=[350, 150]
+    )
+    size_and_time_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+        ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+        ('FONT', (0, 0), (-1, -1), font_name),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+    ]))
+    elements.append(size_and_time_table)
     elements.append(Spacer(1, 10))
+    
+    # 定義10種固定顏色，並設置透明度為50%
+    color_palette = [
+        colors.Color(0.8, 0.9, 1, alpha=0.5),  # 淺藍
+        colors.Color(0.9, 0.8, 1, alpha=0.5),  # 淺紫
+        colors.Color(0.8, 1, 0.9, alpha=0.5),  # 淺綠
+        colors.Color(1, 0.9, 0.8, alpha=0.5),  # 淺橙
+        colors.Color(1, 0.8, 0.8, alpha=0.5),  # 淺紅
+        colors.Color(0.8, 1, 1, alpha=0.5),    # 淺青
+        colors.Color(1, 1, 0.8, alpha=0.5),    # 淺黃
+        colors.Color(0.9, 0.9, 0.9, alpha=0.5),# 淺灰
+        colors.Color(0.8, 0.9, 0.8, alpha=0.5),# 淺綠灰
+        colors.Color(0.9, 0.8, 0.9, alpha=0.5) # 淺粉
+    ]
     
     # 創建表格數據
     table_data = [['Path', translations['file_type'], translations['file_size'], translations['creation_time']]]
     table_data.extend(get_table_data(root_path, max_depth))
     
     # 創建表格並設置樣式
-    table = Table(table_data, colWidths=[280, 70, 70, 100])
+    table = Table([row[:4] for row in table_data], colWidths=[280, 70, 70, 100])  # 只取前四列
     table_style = TableStyle([
         ('FONT', (0, 0), (-1, -1), font_name),
         ('FONTSIZE', (0, 0), (-1, 0), 12),
@@ -183,8 +215,14 @@ def create_pdf_report(root_path, max_depth, pdf_output, project_name, translatio
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
         ('GRID', (0, 0), (-1, -1), 1, colors.lightgrey),
-        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.lightgrey])
     ])
+    
+    # 根據層級設置背景顏色
+    for i, row in enumerate(table_data[1:], start=1):  # 跳過表頭
+        level = row[-1]  # 獲取深度信息
+        color_index = min(level, 9)  # 確保不超過顏色數組的索引
+        table_style.add('BACKGROUND', (0, i), (-1, i), color_palette[color_index])
+    
     table.setStyle(table_style)
     elements.append(table)  
     
@@ -207,34 +245,33 @@ def get_table_data(root_path, max_depth):
             if not entry.name.startswith('.'):
                 is_last = i == len(entries) - 1
                 current_prefix = "└── " if is_last else "├── "
-                size = humanize.naturalsize(get_size(entry))
-                # file_ext = f"({entry.suffix})" if not entry.is_dir() and entry.suffix else "File"
+                size = humanize.naturalsize(get_size(entry), format="%.2f")
                 entry_type = "Directory" if entry.is_dir() else "File"                
-            
                 creation_time = datetime.fromtimestamp(os.path.getctime(entry)).strftime('%Y-%m-%d %H:%M:%S')
-                table_data.append([f"{prefix}{current_prefix}{entry.name}", entry_type, size, creation_time])
                 
+                # 在每行數據中添加深度信息
+                table_data.append([f"{prefix}{current_prefix}{entry.name}", entry_type, size, creation_time, current_depth])
                 
                 if entry.is_dir():
                     extension = "    " if is_last else "│   "
                     inner_print_tree(entry, prefix + extension, current_depth + 1)
         
-    table_data.append([f"{root_dir.name}/","","",""])
+    table_data.append([f"{root_dir.name}/","","","", 0])  # 根目錄深度為0
     inner_print_tree(root_dir)
     return table_data
 
 def main():  
     
-    root_path = "/Users/gump/Documents/_Proj/dit_proj/dataclip"  
+    root_path = "/Users/gump/Documents/_Proj/dit_proj/dc_dataclip"  
     max_depth = 3
     
     # 生成CSV文件
-    csv_output = "directory_structure.csv"
+    csv_output = "/Users/gump/Desktop/directory_structure.csv"
     scan_directory_to_csv(root_path, max_depth, csv_output)
     print(f"\nCSV文件已生成: {csv_output}")
     
     # 生成PDF文件
-    pdf_output = "directory_structure.pdf"
+    pdf_output = "/Users/gump/Desktop/directory_structure.pdf"
     project_name = "Wo虎饞龍"  # 這裡可以替換為實際的項目名稱
     translations = {
         'project_name': '項目名稱',

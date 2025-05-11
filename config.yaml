@@ -1,4 +1,4 @@
-version: "1.1.1"
+version: "1.2"
 
 usage_steps:
   en:
@@ -61,6 +61,7 @@ translations:
     select_output_placeholder: "Please select output location..."
     browse_button: "View..."
     total_size: "Total Size: {}"
+    scan_time: "Scan Time:"
 
   zh_tw:
     window_title: "目錄掃描器"
@@ -102,6 +103,7 @@ translations:
     select_output_placeholder: "請選擇輸出位置..."
     browse_button: "瀏覽..."
     total_size: "總大小：{}"
+    scan_time: "掃描時間："
 
   zh_cn:
     window_title: "目录扫描器"
@@ -143,3 +145,4 @@ translations:
     select_output_placeholder: "请选择输出位置..."
     browse_button: "浏览..."
     total_size: "总大小：{}"
+    scan_time: "扫描时间："

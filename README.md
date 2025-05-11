@@ -15,8 +15,17 @@ CSV 輸出：
 多國語支持 英文 繁體中文 簡體中文 預設使用系統語言 
 翻譯依據 config.yaml 設定
 
+## 更新日誌
+
+### v1.1.2
+- 新增10種固定顏色，並設置透明度為50%
+- 顯示文件大小精度到小數點後2位
+
+### v1.2 (2025-03-01 22:50)
+- 新增檔案建立日期
+
 ## 下載
-[Mac M Chip APP 下載](./releases/latest/Directory-Scanner-v1.1.1-M-Chip.dmg)
+[Mac M Chip APP 下載](./releases/latest/Directory-Scanner-v1.1.2-M-Chip.dmg)
 
 ## 截圖
 ![Screenshot](./screenshots/snap1.png)
